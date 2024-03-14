@@ -1,0 +1,47 @@
+const ping = require('ping');
+
+function scanNetwork(ipRange) {
+    const liveHosts = [];
+    const options = {
+        timeout: 2,
+    };
+
+    // Tạo mảng các địa chỉ IP từ phạm vi IP
+    const ips = generateIPs(ipRange);
+
+    // Lặp qua từng địa chỉ IP và gửi yêu cầu ping
+    ips.forEach(ip => {
+        ping.sys.probe(ip, (isAlive) => {
+            if (isAlive) {
+                liveHosts.push(ip);
+            }
+        }, options);
+    });
+
+    return liveHosts;
+}
+
+function generateIPs(ipRange) {
+    const ips = [];
+    const parts = ipRange.split('/');
+    const ipBase = parts[0];
+    const subnetSize = parseInt(parts[1]);
+
+    // Tạo mảng các địa chỉ IP từ phạm vi IP
+    for (let i = 1; i <= Math.pow(2, (32 - subnetSize)); i++) {
+        ips.push(ipBase + '/' + subnetSize);
+    }
+
+    return ips;
+}
+
+if (require.main === module) {
+    const network = '192.168.1.0/24'; // Địa chỉ mạng của bạn
+    const liveHosts = scanNetwork(network);
+    console.log('Các máy hoạt động trong mạng:');
+    liveHosts.forEach(host => console.log(host));
+}
+
+module.exports = {
+    scanNetwork
+};
